@@ -2,7 +2,9 @@ package wethinkcode.loadshed.spikes;
 
 import javax.jms.Connection;
 import javax.jms.JMSException;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
@@ -27,6 +29,8 @@ public class TopicSender implements Runnable
         app.run();
     }
 
+    private boolean running = true;
+
     private String[] cmdLineMsgs;
 
     private Connection connection;
@@ -39,12 +43,10 @@ public class TopicSender implements Runnable
             final ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory( MQ_URL );
             connection = factory.createConnection( MQ_USER, MQ_PASSWD );
             connection.start();
-
             session = connection.createSession( false, Session.AUTO_ACKNOWLEDGE );
             sendMessages( cmdLineMsgs.length == 0
                 ? new String[]{ "{ \"stage\":17 }" }
                 : cmdLineMsgs );
-
         }catch( JMSException erk ){
             throw new RuntimeException( erk );
         }finally{
@@ -54,7 +56,13 @@ public class TopicSender implements Runnable
     }
 
     private void sendMessages( String[] messages ) throws JMSException {
-        throw new UnsupportedOperationException( "TODO" );
+        MessageProducer producer = session.createProducer(session.createQueue(MQ_TOPIC_NAME));
+
+        for (String string : messages) {
+            TextMessage msg = session.createTextMessage(string);
+            System.out.println("Sent msg: "+msg.getText());
+            producer.send(msg);
+        }
     }
 
     private void closeResources(){
@@ -66,6 +74,10 @@ public class TopicSender implements Runnable
         }
         session = null;
         connection = null;
+    }
+
+    public void setArgs(String[] args) {
+        this.cmdLineMsgs = args;
     }
 
 }
