@@ -7,6 +7,7 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import wethinkcode.loadshed.common.mq.MQ;
@@ -70,7 +71,22 @@ public class QueueReceiver implements Runnable
             receiver.setMessageListener( new MessageListener() { //this anonymous inner-class could be replaced with a lambda
                 @Override
                 public void onMessage( Message m ){
-                    throw new UnsupportedOperationException( "TODO" );
+                    try {
+                        // m = receiver.receive();
+
+                        if (m instanceof TextMessage) {
+                            String body = ((TextMessage) m).getText();
+                            if ("SHUTDOWN".equals(body)) {
+                                running = false;
+                            }
+                            System.out.println("Message received: "+body);
+                        } else {
+                            System.out.println("Message is not of TextMessage!");
+                        }
+                    } catch (JMSException e) {
+                        System.out.println("Unexpected message type: "+m.getClass());
+                        e.printStackTrace();
+                    }
                 }
             }
             );
