@@ -1,11 +1,14 @@
 package wethinkcode.stage;
 
 
+import javax.jms.JMSException;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import wethinkcode.loadshed.common.transfer.StageDO;
+import wethinkcode.loadshed.spikes.TopicSender;
 
 /**
  * I provide a REST API that reports the current loadshedding "stage". I provide two endpoints:
@@ -25,6 +28,8 @@ public class StageService
 
     public static final String MQ_TOPIC_NAME = "stage";
 
+    // private TopicSender topicSender = new TopicSender();
+
     public static void main( String[] args ){
         final StageService svc = new StageService().initialise();
         svc.start();
@@ -36,6 +41,8 @@ public class StageService
 
     private int servicePort;
 
+    private TopicSender topicSender = new TopicSender();
+
     @VisibleForTesting
     StageService initialise(){
         return initialise( DEFAULT_STAGE );
@@ -45,11 +52,12 @@ public class StageService
     StageService initialise( int initialStage ){
         loadSheddingStage = initialStage;
         assert loadSheddingStage >= 0;
+        topicSender.run();
 
         server = initHttpServer();
         return this;
     }
-
+    
     public void start(){
         start( DEFAULT_PORT );
     }
@@ -81,7 +89,7 @@ public class StageService
     private Context setNewStage( Context ctx ){
         final StageDO stageData = ctx.bodyAsClass( StageDO.class );
         final int newStage = stageData.getStage();
-        if( newStage >= 0 ){
+        if( newStage >= 0 && newStage <= 8 ){
             loadSheddingStage = newStage;
             broadcastStageChangeEvent( ctx );
             ctx.status( HttpStatus.OK );
@@ -92,7 +100,11 @@ public class StageService
     }
 
     private void broadcastStageChangeEvent( Context ctx ){
-        throw new UnsupportedOperationException( "TODO" );
+        try {
+            topicSender.sendMessages(ctx.body());
+        } catch (JMSException e) {
+            e.printStackTrace();
+        }
     }
 
 }
