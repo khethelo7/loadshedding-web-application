@@ -1,5 +1,7 @@
 package wethinkcode.loadshed.spikes;
 
+import java.util.Scanner;
+
 import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
@@ -39,30 +41,29 @@ public class TopicSender implements Runnable
 
     @Override
     public void run(){
-        try{
-            final ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory( MQ_URL );
-            connection = factory.createConnection( MQ_USER, MQ_PASSWD );
-            connection.start();
-            session = connection.createSession( false, Session.AUTO_ACKNOWLEDGE );
-            sendMessages( cmdLineMsgs.length == 0
-                ? new String[]{ "{ \"stage\":17 }" }
-                : cmdLineMsgs );
-        }catch( JMSException erk ){
-            throw new RuntimeException( erk );
-        }finally{
-            closeResources();
-            System.out.println( "Bye..." );
-        }
+            try{
+                final ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory( MQ_URL );
+                connection = factory.createConnection( MQ_USER, MQ_PASSWD );
+                connection.start();
+                session = connection.createSession( false, Session.AUTO_ACKNOWLEDGE );
+                // sendMessages( line.length() == 0
+                //     ? new String( "{ \"stage\":17 }" )
+                //     : line );
+            }catch( JMSException erk ){
+                // throw new RuntimeException( erk );
+                closeResources();
+                System.out.println( "Bye..." );
+            }
     }
 
-    private void sendMessages( String[] messages ) throws JMSException {
+    public void sendMessages( String messages ) throws JMSException {
         MessageProducer producer = session.createProducer(session.createQueue(MQ_TOPIC_NAME));
 
-        for (String string : messages) {
-            TextMessage msg = session.createTextMessage(string);
+        // for (String string : messages) {
+            TextMessage msg = session.createTextMessage(messages);
             System.out.println("Sent msg: "+msg.getText());
             producer.send(msg);
-        }
+        // }
     }
 
     private void closeResources(){
