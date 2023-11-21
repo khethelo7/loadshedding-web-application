@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{/index.html}">
+        <link rel="stylesheet" href="./css/style.css">
+    <head></head>
+    <body>
+        <h1>LightInTheSched Application</h1>
+        <nav>
+            <a href="/stage">See The Current Loadshedding stage</a>
+            <a href="#">Get A List Of Provinces</a>
+            <a href="#">Find Your City's Schedule</a>
+        </nav>
+        <main>
+            <div layout:fragment="contents">
+                <p>This is the stage page</p>
+            </div>
+        </main>
+    </body>
+</html>

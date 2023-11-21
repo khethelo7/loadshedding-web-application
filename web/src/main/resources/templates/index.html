@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
     <head>
-        <title>LightInTheSched</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LightInTheSched</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Pangolin">
+        <link rel="stylesheet" href="./css/style.css">
     </head>
     <body>
-        <div>
-            <h1>Loadshedding Stage</h1>
-            <p th:text="${message}"></p>
-        </div>
+        <h1>LightInTheSched Application</h1>
+        <nav>
+            <a href="/stage">See The Current Loadshedding stage</a>
+            <a href="#">Get A List Of Provinces</a>
+            <a href="#">Find Your City's Schedule</a>
+        </nav>
+
+        <main>
+            <div layout:fragment="contents">
+                <p>This is our Loadshedding Application</p>
+            </div>
+        </main>
     </body>
 </html>

@@ -1,0 +1,24 @@
+
+body {
+    height: 100vh;
+    /* align-items: center; */
+    /* justify-content: center; */
+    background: #06283D;
+}
+
+nav {
+    flex-wrap: wrap;
+    margin-bottom: 2em;
+}
+
+nav a {
+    display: block;
+    padding: 5px 15px;
+    text-align: center;
+    color: #464141;
+}
+
+nav a:hover {
+    background-color: blue;
+    color: #ffffff;
+}
