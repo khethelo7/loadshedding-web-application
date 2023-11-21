@@ -1,7 +1,12 @@
 package wethinkcode.web;
 
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
+import io.javalin.plugin.rendering.template.JavalinThymeleaf;
 import wethinkcode.places.PlaceNameService;
 import wethinkcode.schedule.ScheduleService;
 import wethinkcode.stage.StageService;
@@ -15,7 +20,7 @@ import wethinkcode.stage.StageService;
 public class WebService
 {
 
-    public static final int DEFAULT_PORT = 80;
+    public static final int DEFAULT_PORT = 5050;
 
     public static final String STAGE_SVC_URL = "http://localhost:" + StageService.DEFAULT_PORT;
 
@@ -37,6 +42,8 @@ public class WebService
     @VisibleForTesting
     WebService initialise(){
         // FIXME: Initialise HTTP client, MQ machinery and server from here
+        JavalinThymeleaf.configure(templateEngine());
+        server = configureHttpServer();
         return this;
     }
 
@@ -63,6 +70,18 @@ public class WebService
     }
 
     private Javalin configureHttpServer(){
-        throw new UnsupportedOperationException( "TODO" );
+        Javalin app = Javalin.create(config -> {
+            config.addStaticFiles("/templates/", Location.CLASSPATH);
+        });
+        Routes.configure(app);
+        return app;
+    }
+
+    private TemplateEngine templateEngine() {
+        TemplateEngine templateEngine = new TemplateEngine();
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setPrefix("/templates/");
+        templateEngine.setTemplateResolver(resolver);
+        return templateEngine;
     }
 }
