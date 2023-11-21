@@ -57,7 +57,7 @@ public class TopicSender implements Runnable
     }
 
     public void sendMessages( String messages ) throws JMSException {
-        MessageProducer producer = session.createProducer(session.createQueue(MQ_TOPIC_NAME));
+        MessageProducer producer = session.createProducer(session.createTopic(MQ_TOPIC_NAME));
 
         // for (String string : messages) {
             TextMessage msg = session.createTextMessage(messages);
