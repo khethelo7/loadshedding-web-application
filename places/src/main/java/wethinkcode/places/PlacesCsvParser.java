@@ -5,9 +5,17 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import com.google.common.annotations.VisibleForTesting;
 import wethinkcode.places.db.memory.PlacesDb;
@@ -54,12 +62,55 @@ public class PlacesCsvParser
 
     @VisibleForTesting
     Places parseDataLines( final LineNumberReader in ){
-        final Set<Town> allTowns = in.lines()
-            .map( this::splitLineIntoValues )
-            .filter(this::isLineAWantedFeature )
-            .map( this::asTown )
-            .collect( Collectors.toSet() );
-        return new PlacesDb( allTowns );
+        Collection<Town> places = new ArrayList<>();
+
+        try {
+            String line;
+            while ((line = in.readLine()) != null) {
+                String[] csvFields = line.split(",");
+
+                if (csvFields.length > 8) {
+                    String name = csvFields[0];
+                    String province = csvFields[7];
+                    String featureDescription = csvFields[1];
+
+                    if (featureDescription.equals("Area") || featureDescription.equals("Town") || featureDescription.equals("Urban Area")) {
+                        Town town = new Town(name, province);
+                        town.setFeatureDescription(featureDescription);
+                        places.add(town);
+                    }
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Places resultPlaces = new PlacesDb(new HashSet<>(places));
+
+        return resultPlaces;
+    }
+
+    public Places parseStringLines(String csvText) {
+        Collection<Town> places = new ArrayList<>();
+
+        try (Reader reader = new StringReader(csvText);
+            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT)) {
+
+            for (CSVRecord csvRecord : csvParser) {
+                String name = csvRecord.get(0);
+                String province = csvRecord.get(7);
+                String featureDescription = csvRecord.get(1);
+                
+                if (featureDescription.equals("Area") || featureDescription.equals("Town") || featureDescription.equals("Urban")) {
+                    Town town = new Town(name, province);
+                    places.add(town);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return new PlacesDb(new HashSet<>(places));
     }
 
     // The following variables are only useful in the methods that follow them...

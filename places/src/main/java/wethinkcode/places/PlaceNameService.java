@@ -3,17 +3,16 @@ package wethinkcode.places;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Properties;
 
 import com.google.common.annotations.VisibleForTesting;
+
 import io.javalin.Javalin;
-import io.javalin.http.Context;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import wethinkcode.places.model.Places;
-import wethinkcode.places.model.Town;
+import wethinkcode.places.server.Endpoints;
 
 /**
  * I provide a Place-names Service for places in South Africa.
@@ -56,7 +55,7 @@ public class PlaceNameService implements Runnable {
     public static void main( String[] args ){
         final PlaceNameService svc = new PlaceNameService().initialise();
         final int exitCode = new CommandLine( svc ).execute( args );
-        System.exit( exitCode );
+        // System.exit( exitCode );
     }
 
     // Instance state
@@ -109,6 +108,7 @@ public class PlaceNameService implements Runnable {
      * starting up all the big machinery (i.e. without calling initialise()).
      */
     @VisibleForTesting
+    public
     PlaceNameService initialise(){
         places = initPlacesDb();
         server = initHttpServer();
@@ -159,20 +159,18 @@ public class PlaceNameService implements Runnable {
 
             // FIXME: We really ought to be able to do better than this!
             System.err.println( "Error reading CSV file " + dataFile + ": " + ex.getMessage() );
-            throw new RuntimeException( ex );
+            try {
+                return new PlacesCsvParser().parseCsvSource(new File("./places/resources/PlaceNamesZA2008.csv"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     private Javalin initHttpServer(){
-        return Javalin.create()
-            .get( "/provinces", ctx -> ctx.json( places.provinces() ))
-            .get( "/towns/{province}", this::getTowns );
-    }
-
-    private Context getTowns( Context ctx ){
-        final String province = ctx.pathParam( "province" );
-        final Collection<Town> towns = places.townsIn( province );
-        return ctx.json( towns );
+        Javalin server = Javalin.create();
+        Endpoints.configureEndpoints(server, this.places);
+        return server;
     }
 
     @VisibleForTesting

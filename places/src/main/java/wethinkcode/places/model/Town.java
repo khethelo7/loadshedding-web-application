@@ -18,6 +18,8 @@ public class Town
 
     private final String province;
 
+    private String featureDescription = "";
+
     public Town( String aName, String aProvince ){
         name = aName;
         province = aProvince;
@@ -63,5 +65,9 @@ public class Town
             + ", "
             + getProvince()
             + "}";
+    }
+
+    public void setFeatureDescription(String featureDescription) {
+        this.featureDescription = featureDescription;
     }
 }
