@@ -9,12 +9,18 @@
         <h1>LightInTheSched Application</h1>
         <nav>
             <a href="/stage">See The Current Loadshedding stage</a>
-            <a href="#">Get A List Of Provinces</a>
-            <a href="#">Find Your City's Schedule</a>
+            <a href="/provinces">Get A List Of Provinces</a>
+            <a href="/towns">Find Your City's Schedule</a>
         </nav>
         <main>
-            <div layout:fragment="contents">
-                <p>This is the stage page</p>
+            <div layout:fragment="contents" th:if="${not #lists.isEmpty(stages)}">
+                <p>The following is a list of available stages:</p>
+                <ul th:each="stage : ${stages}">
+                    <li><a href="#" th:text="${'stage '+stage.getStage}"></a></li>
+                </ul>
+            </div>
+            <div>
+                <p th:text="${'South Africa is currently on stage '+current_stage.getStage}"></p>
             </div>
         </main>
     </body>
