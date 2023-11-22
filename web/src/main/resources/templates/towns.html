@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{/index.html}">
+        <link rel="stylesheet" href="./css/style.css">
+    <head></head>
+    <body>
+        <h1>LightInTheSched Application</h1>
+        <nav>
+            <a href="/stage">See The Current Loadshedding stage</a>
+            <a href="/provinces">Get A List Of Provinces</a>
+            <a href="/towns">Find Your City's Schedule</a>
+        </nav>
+        <main>
+            <div layout:fragment="contents">
+                <p>Enter a province to view a LoadShed schedule from your town</p>
+                <form action="/provinces.action" method="post" enctype="application/x-www-form-urlencoded">
+                    <input type="text" name="province" id="province">
+                    <input type="submit" name="submit" id="submit" value="Submit">
+                </form>
+            </div>
+        </main>
+    </body>
+</html>
