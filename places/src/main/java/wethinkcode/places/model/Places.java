@@ -1,6 +1,5 @@
 package wethinkcode.places.model;
 
-
 import java.util.Collection;
 
 /**
@@ -14,4 +13,8 @@ public interface Places
     Collection<Town> townsIn( String aProvince );
 
     int size();
+
+    void add(Town town);
+
+    Town get(int index);
 }
