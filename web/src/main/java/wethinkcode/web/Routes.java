@@ -7,13 +7,18 @@ import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONException;
+import kong.unirest.json.JSONObject;
+import wethinkcode.loadshed.common.transfer.ScheduleDO;
 import wethinkcode.loadshed.common.transfer.StageDO;
+import wethinkcode.places.model.Town;
 
 import static io.javalin.apibuilder.ApiBuilder.get;
 import static io.javalin.apibuilder.ApiBuilder.post;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +28,7 @@ public class Routes {
     public static final String STAGE_PAGE = "/stage";
     public static final String PROVINCES_PAGE = "/provinces";
     public static final String TOWNS_PAGE = "/towns";
+    public static final String SCHEDULE_PAGE = "/town_schedule";
 
     public static final String FETCH_TOWNS = "/provinces.action";
 
@@ -36,6 +42,7 @@ public class Routes {
             get(STAGE_PAGE, stage);
             get(PROVINCES_PAGE, provinces);
             get(TOWNS_PAGE, towns);
+            get(SCHEDULE_PAGE, schedule);
 
             post(FETCH_TOWNS, view_towns);
         });
@@ -61,16 +68,13 @@ public class Routes {
 
     public static Handler provinces = ctx -> {
         HttpResponse<JsonNode> response = Unirest.get(places_url+"provinces").asJson();
-        ArrayList<String> provincesList = getProvincesFromResponse(response);
+        ArrayList<String> provincesList = getListFromResponse(response);
 
         Map<String, Object> model = Map.of("provinces", provincesList);
         ctx.render("provinces.html", model);
     };
 
     public static Handler towns = ctx -> {
-
-        HttpResponse<JsonNode> response = Unirest.get(places_url+"provinces").asJson();
-
         ctx.render("towns.html");
     };
 
@@ -80,8 +84,28 @@ public class Routes {
                 .get();
         
         HttpResponse<JsonNode> response = Unirest.get(places_url+"towns/"+selectedProvince).asJson();
+        ArrayList<Town> towns = getJsonListFromResponse(response);
+        Collections.sort(towns, Comparator.comparing(Town::getName));
+
+        // need towns as 'towns', province as 'province'
+        Map<String, Object> model = Map.of("towns", towns, "province", selectedProvince);
+
         System.out.println(selectedProvince);
-        ctx.render("towns.html");
+        ctx.render("towns_in_province.html", model);
+    };
+
+    public static Handler schedule = ctx -> {
+        String searchedTown = ctx.queryParam("selectedTown");
+        String searchedProvince = ctx.queryParam("selectedProvince");
+        int currentStage = getStageFromResponse(Unirest.get(stage_url+"stage").asJson());
+
+        HttpResponse<ScheduleDO> response = Unirest.get(schedule_url+searchedProvince+"/"+searchedTown+"/"+currentStage)
+                .asObject(ScheduleDO.class);
+
+        ScheduleDO resultSchedule = response.getBody();
+
+        Map<String, Object> model = Map.of("schedule", resultSchedule, "town", searchedTown);
+        ctx.render("schedule.html", model);
     };
 
 
@@ -89,15 +113,28 @@ public class Routes {
     private static int getStageFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
         return response.getBody().getObject().getInt( "stage" );
     }
-    private static ArrayList<String> getProvincesFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
+    private static ArrayList<String> getListFromResponse(HttpResponse<JsonNode> response) throws JSONException {
         JSONArray jsonArray = new JSONArray(response.getBody().toString());
-        ArrayList<String> provinces = new ArrayList<>();
-
+        ArrayList<String> resultList = new ArrayList<>();
+    
         for (int i = 0; i < jsonArray.length(); i++) {
-            provinces.add(jsonArray.getString(i));
+            Object element = jsonArray.get(i);
+            resultList.add((String) element);
         }
+    
+        return resultList;
+    }
+    private static ArrayList<Town> getJsonListFromResponse(HttpResponse<JsonNode> response) throws JSONException {
+        JSONArray jsonArray = new JSONArray(response.getBody().toString());
+        ArrayList<Town> resultList = new ArrayList<>();
+    
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject element = jsonArray.getJSONObject(i);
 
-        return provinces;
+            resultList.add(new Town(element.get("name").toString(), element.get("province").toString()));
+        }
+    
+        return resultList;
     }
 
 }
