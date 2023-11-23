@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html
+        xmlns:th="http://www.thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{/index.html}">
+        <link rel="stylesheet" href="./css/style.css">
+    <head></head>
+    <body>
+        <h1>LightInTheSched Application</h1>
+        <nav>
+            <a href="/stage">See The Current Loadshedding stage</a>
+            <a href="/provinces">Get A List Of Provinces</a>
+            <a href="/towns">Find Your City's Schedule</a>
+        </nav>
+        <main>
+            <div layout:fragment="contents">
+                <p>Enter a province to view a LoadShed schedule from your town</p>
+                <form action="/provinces.action" method="post" enctype="application/x-www-form-urlencoded">
+                    <input type="text" name="province" id="province">
+                    <input type="submit" name="submit" id="submit" value="Submit">
+                </form>
+            </div>
+            <div th:if="${#lists.isEmpty(towns)}">
+                <p>Oops, it looks like you selected an invalid province :(, Try again!</p>
+                <p>See our <a href="/provinces">List of Provinces</a>!</p>
+            </div>
+            <div th:unless="${#lists.isEmpty(towns)}">
+                <ul th:each="town : ${towns}">
+                    <!-- <li th:text="${town.getName}"></li> -->
+                    <li><a th:text="${town.getName}" th:href="@{'/town_schedule?selectedTown=' + ${town.getName} + '&amp;selectedProvince=' + ${province}}"></a></li>
+                    <!-- /town_schedule?selectedTown=Volksrust?selectedProvince=Mpumalanga -->
+                </ul>
+            </div>
+        </main>
+    </body>
+</html>
