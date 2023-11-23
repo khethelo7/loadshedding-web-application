@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * I test StageService message sending.
  */
-@Disabled
+// @Disabled
 @Tag( "expensive" )
 public class StageServiceMQTest
 {

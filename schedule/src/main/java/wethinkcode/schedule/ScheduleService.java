@@ -21,7 +21,7 @@ public class ScheduleService
 {
     public static final int DEFAULT_STAGE = 0; // no loadshedding. Ha!
 
-    public static final int DEFAULT_PORT = 7002;
+    public static int DEFAULT_PORT = 7002;
 
     public static final String MQ_TOPIC = "stage";
 
@@ -35,6 +35,7 @@ public class ScheduleService
     }
 
     @VisibleForTesting
+    public
     ScheduleService initialise(){
         server = initHttpServer();
         return this;
@@ -46,7 +47,7 @@ public class ScheduleService
 
     @VisibleForTesting
     void start( int networkPort ){
-        servicePort = networkPort;
+        DEFAULT_PORT = networkPort;
         run();
     }
 
@@ -55,11 +56,16 @@ public class ScheduleService
     }
 
     public void run(){
-        server.start( servicePort );
+        server.start( DEFAULT_PORT );
     }
 
     private Javalin initHttpServer(){
         return Javalin.create()
+            .before(ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
+                ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                ctx.header("Access-Control-Allow-Headers", "Content-Type");
+            })
             .get( "/{province}/{town}/{stage}", this::getSchedule )
             .get( "/{province}/{town}", this::getDefaultSchedule );
     }

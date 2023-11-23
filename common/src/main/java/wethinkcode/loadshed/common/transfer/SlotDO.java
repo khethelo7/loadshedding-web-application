@@ -33,4 +33,10 @@ public class SlotDO
         return end;
     }
 
+    @Override
+    public String toString() {
+        return "{from: "+start+","+
+                "to: "+end+"}";
+    }
+
 }

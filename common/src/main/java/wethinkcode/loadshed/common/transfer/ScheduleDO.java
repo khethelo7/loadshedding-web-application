@@ -45,4 +45,19 @@ public class ScheduleDO
         return startDate;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder schedule = new StringBuilder();
+        schedule.append("[");
+        for (DayDO day : loadSheddingDays) {
+            schedule.append(day.toString());
+            schedule.append(",");
+        }
+        schedule.delete(schedule.lastIndexOf(","), schedule.lastIndexOf(","));
+        schedule.append("]");
+        return "{"+
+            "days:" + schedule.toString()+
+            "}";
+    }
+
 }

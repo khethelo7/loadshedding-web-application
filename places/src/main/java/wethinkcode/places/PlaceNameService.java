@@ -127,7 +127,7 @@ public class PlaceNameService implements Runnable {
 
     @Override
     public void run(){
-        server.start( servicePort() );
+        server.start( DEFAULT_PORT );
     }
 
     /**
@@ -168,7 +168,12 @@ public class PlaceNameService implements Runnable {
     }
 
     private Javalin initHttpServer(){
-        Javalin server = Javalin.create();
+        Javalin server = Javalin.create()
+            .before(ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
+                ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                ctx.header("Access-Control-Allow-Headers", "Content-Type");
+            });
         Endpoints.configureEndpoints(server, this.places);
         return server;
     }

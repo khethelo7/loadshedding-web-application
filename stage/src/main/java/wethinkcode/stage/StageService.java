@@ -24,7 +24,7 @@ public class StageService
 {
     public static final int DEFAULT_STAGE = 0; // no loadshedding. Ha!
 
-    public static final int DEFAULT_PORT = 7001;
+    public static int DEFAULT_PORT = 7001;
 
     public static final String MQ_TOPIC_NAME = "stage";
 
@@ -44,6 +44,7 @@ public class StageService
     private TopicSender topicSender = new TopicSender();
 
     @VisibleForTesting
+    public
     StageService initialise(){
         return initialise( DEFAULT_STAGE );
     }
@@ -64,7 +65,7 @@ public class StageService
 
     @VisibleForTesting
     void start( int networkPort ){
-        servicePort = networkPort;
+        DEFAULT_PORT = networkPort;
         run();
     }
 
@@ -73,11 +74,16 @@ public class StageService
     }
 
     public void run(){
-        server.start( servicePort );
+        server.start( DEFAULT_PORT );
     }
 
     private Javalin initHttpServer(){
         return Javalin.create()
+            .before(ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
+                ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                ctx.header("Access-Control-Allow-Headers", "Content-Type");
+            })
             .get( "/stage", this::getCurrentStage )
             .post( "/stage", this::setNewStage );
     }

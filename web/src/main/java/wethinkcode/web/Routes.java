@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Routes {
     public static final String LANDING_PAGE = "/";
     public static final String STAGE_PAGE = "/stage";
@@ -99,12 +101,13 @@ public class Routes {
         String searchedProvince = ctx.queryParam("selectedProvince");
         int currentStage = getStageFromResponse(Unirest.get(stage_url+"stage").asJson());
 
-        HttpResponse<ScheduleDO> response = Unirest.get(schedule_url+searchedProvince+"/"+searchedTown+"/"+currentStage)
-                .asObject(ScheduleDO.class);
+        HttpResponse<JsonNode> response = Unirest
+                .get(schedule_url+searchedProvince+"/"+searchedTown+"/"+currentStage)
+                .asJson();
 
-        ScheduleDO resultSchedule = response.getBody();
+        // JSONObject scheduleObject = new JSONObject(response.getBody());
 
-        Map<String, Object> model = Map.of("schedule", resultSchedule, "town", searchedTown);
+        Map<String, Object> model = Map.of("town", searchedTown, "schedule", response.getBody());
         ctx.render("schedule.html", model);
     };
 
@@ -113,6 +116,9 @@ public class Routes {
     private static int getStageFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
         return response.getBody().getObject().getInt( "stage" );
     }
+    // private static ScheduleDO getScheduleFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
+        
+    // }
     private static ArrayList<String> getListFromResponse(HttpResponse<JsonNode> response) throws JSONException {
         JSONArray jsonArray = new JSONArray(response.getBody().toString());
         ArrayList<String> resultList = new ArrayList<>();

@@ -6,7 +6,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 import com.google.common.annotations.VisibleForTesting;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
-import io.javalin.plugin.rendering.template.JavalinThymeleaf;
+import io.javalin.rendering.template.JavalinThymeleaf;
 import wethinkcode.places.PlaceNameService;
 import wethinkcode.schedule.ScheduleService;
 import wethinkcode.stage.StageService;
@@ -30,6 +30,10 @@ public class WebService
 
     private static final String PAGES_DIR = "/html";
 
+    private PlaceNameService placeAPI = new PlaceNameService();
+    private StageService stageAPI = new StageService();
+    private ScheduleService scheduleAPI = new ScheduleService();
+
     public static void main( String[] args ){
         final WebService svc = new WebService().initialise();
         svc.start();
@@ -42,12 +46,16 @@ public class WebService
     @VisibleForTesting
     WebService initialise(){
         // FIXME: Initialise HTTP client, MQ machinery and server from here
-        JavalinThymeleaf.configure(templateEngine());
+        JavalinThymeleaf.init(templateEngine());
+        configureHttpClient();
         server = configureHttpServer();
         return this;
     }
 
     public void start(){
+        placeAPI.run();
+        stageAPI.run();
+        scheduleAPI.run();
         start( DEFAULT_PORT );
     }
 
@@ -66,13 +74,20 @@ public class WebService
     }
 
     private void configureHttpClient(){
-        throw new UnsupportedOperationException( "TODO" );
+        placeAPI.initialise();
+        stageAPI.initialise();
+        scheduleAPI.initialise();
     }
 
     private Javalin configureHttpServer(){
         Javalin app = Javalin.create(config -> {
-            config.addStaticFiles("/templates/", Location.CLASSPATH);
-        });
+                config.staticFiles.add("/templates/", Location.CLASSPATH);
+            })
+            .before(ctx -> {
+                ctx.header("Access-Control-Allow-Origin", "*");
+                ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+                ctx.header("Access-Control-Allow-Headers", "Content-Type");
+            });
         Routes.configure(app);
         return app;
     }
