@@ -10,16 +10,20 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.HttpStatus;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import kong.unirest.json.JSONException;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.*;
 import wethinkcode.loadshed.common.transfer.StageDO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -49,7 +53,6 @@ public class StageServiceMQTest
         mqConnection.close();
     }
 
-    @BeforeEach
     public void connectMqListener( MessageListener listener ) throws JMSException {
         mqConnection = factory.createConnection();
         final Session session = mqConnection.createSession( false, Session.AUTO_ACKNOWLEDGE );
@@ -68,14 +71,24 @@ public class StageServiceMQTest
     }
 
     @Test
-    public void sendMqEventWhenStageChanges(){
+    public void sendMqEventWhenStageChanges() throws JSONException, InterruptedException{
         final SynchronousQueue<StageDO> resultCatcher = new SynchronousQueue<>();
-        final MessageListener mqListener = new MessageListener(){
+
+        final MessageListener mqListener = new MessageListener(){ // Happens in the background and waits
             @Override
             public void onMessage( Message message ){
-                throw new UnsupportedOperationException( "TODO" );
+                StageDO resultStage = (StageDO) ((TextMessage) message).getClass().cast(StageDO.class);
+                
+                resultCatcher.add(resultStage);
+                assertEquals(new StageDO(1), resultStage);
             }
         };
+        try {
+            connectMqListener(mqListener);
+        } catch (JMSException e) {
+            fail("Could not connect MQListener");
+        }
+
 
         final HttpResponse<StageDO> startStage = Unirest.get( serverUrl() + "/stage" ).asObject( StageDO.class );
         assertEquals( HttpStatus.OK, startStage.getStatus() );
@@ -89,9 +102,13 @@ public class StageServiceMQTest
             .asJson();
         assertEquals( HttpStatus.OK, changeStage.getStatus() );
 
-        fail( "TODO" );
+        assertNotEquals(new StageDO(getStageFromResponse(changeStage)), resultCatcher.take());
 
 
+    }
+
+    private static int getStageFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
+        return response.getBody().getObject().getInt( "stage" );
     }
 
     private static void startMsgQueue() throws JMSException {
