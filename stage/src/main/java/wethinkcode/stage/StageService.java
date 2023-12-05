@@ -1,5 +1,6 @@
 package wethinkcode.stage;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,17 @@ public class StageService {
 
     public static final String MQ_TOPIC_NAME = "stage";
 
+    public static Map<StageDO, String> stages = Map.of(
+        new StageDO(1), "Stage 1 allows for up to 1000 MW of the national load to be shed.",
+        new StageDO(2), "Stage 2 allows for up to 2000 MW of the national load to be shed.",
+        new StageDO(3), "Stage 3 allows for up to 3000 MW of the national load to be shed.",
+        new StageDO(4), "Stage 4 allows for up to 4000 MW of the national load to be shed.",
+        new StageDO(5), "Stage 5 allows for up to 5000 MW of the national load to be shed.",
+        new StageDO(6), "Stage 6 allows for up to 6000 MW of the national load to be shed.",
+        new StageDO(7), "Stage 7 allows for up to 7000 MW of the national load to be shed.",
+        new StageDO(8), "Stage 8 allows for up to 8000 MW of the national load to be shed."
+    );
+
     // private TopicSender topicSender = new TopicSender();
 
     public static String ESKOM_STAGE_ENDPOINT = "https://loadshedding.eskom.co.za/LoadShedding/GetStatus";
@@ -42,6 +54,8 @@ public class StageService {
     private int loadSheddingStage;
     
     private Javalin server;
+
+    StageDO currentStage;
     
     private int servicePort;
     
@@ -132,7 +146,7 @@ public class StageService {
         HttpResponse<String> stage_response = null;
         try {
             stage_response = Unirest.get(ESKOM_STAGE_ENDPOINT).asString();
-            System.out.println(stage_response.getBody());
+            currentStage = new StageDO(Integer.parseInt(stage_response.getBody()));
         } catch (Exception e) {
             e.printStackTrace();
         }
