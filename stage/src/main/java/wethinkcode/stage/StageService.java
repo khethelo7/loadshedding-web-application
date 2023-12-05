@@ -1,6 +1,5 @@
 package wethinkcode.stage;
 
-
 import javax.jms.JMSException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -20,8 +19,8 @@ import wethinkcode.loadshed.spikes.TopicSender;
  * request.
  * </ul>
  */
-public class StageService
-{
+public class StageService {
+
     public static final int DEFAULT_STAGE = 0; // no loadshedding. Ha!
 
     public static int DEFAULT_PORT = 7001;
@@ -30,19 +29,17 @@ public class StageService
 
     // private TopicSender topicSender = new TopicSender();
 
-    public static void main( String[] args ){
-        final StageService svc = new StageService().initialise();
-        svc.start();
-    }
+    // https://loadshedding.eskom.co.za/LoadShedding/GetStatus
 
+    
     private int loadSheddingStage;
-
+    
     private Javalin server;
-
+    
     private int servicePort;
-
+    
     private TopicSender topicSender = new TopicSender();
-
+    
     @VisibleForTesting
     public
     StageService initialise(){
@@ -54,7 +51,7 @@ public class StageService
         loadSheddingStage = initialStage;
         assert loadSheddingStage >= 0;
         topicSender.run();
-
+        
         server = initHttpServer();
         return this;
     }
@@ -62,36 +59,36 @@ public class StageService
     public void start(){
         start( DEFAULT_PORT );
     }
-
+    
     @VisibleForTesting
     void start( int networkPort ){
         DEFAULT_PORT = networkPort;
         run();
     }
-
+    
     public void stop(){
         server.stop();
     }
-
+    
     public void run(){
         server.start( DEFAULT_PORT );
     }
-
+    
     private Javalin initHttpServer(){
         return Javalin.create()
-            .before(ctx -> {
-                ctx.header("Access-Control-Allow-Origin", "*");
-                ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-                ctx.header("Access-Control-Allow-Headers", "Content-Type");
-            })
-            .get( "/stage", this::getCurrentStage )
-            .post( "/stage", this::setNewStage );
+        .before(ctx -> {
+            ctx.header("Access-Control-Allow-Origin", "*");
+            ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+            ctx.header("Access-Control-Allow-Headers", "Content-Type");
+        })
+        .get( "/stage", this::getCurrentStage )
+        .post( "/stage", this::setNewStage );
     }
 
     private Context getCurrentStage( Context ctx ){
         return ctx.json( new StageDO( loadSheddingStage ) );
     }
-
+    
     private Context setNewStage( Context ctx ){
         final StageDO stageData = ctx.bodyAsClass( StageDO.class );
         final int newStage = stageData.getStage();
@@ -104,7 +101,7 @@ public class StageService
         }
         return ctx.json( new StageDO( loadSheddingStage ) );
     }
-
+    
     private void broadcastStageChangeEvent( Context ctx ){
         try {
             topicSender.sendMessages(ctx.body());
@@ -112,5 +109,9 @@ public class StageService
             e.printStackTrace();
         }
     }
-
+    
+    public static void main( String[] args ){
+        final StageService svc = new StageService().initialise();
+        svc.start();
+    }
 }
