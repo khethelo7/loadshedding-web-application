@@ -6,6 +6,9 @@ import com.google.common.annotations.VisibleForTesting;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
 import wethinkcode.loadshed.common.transfer.StageDO;
 import wethinkcode.loadshed.spikes.TopicSender;
 
@@ -29,7 +32,7 @@ public class StageService {
 
     // private TopicSender topicSender = new TopicSender();
 
-    // https://loadshedding.eskom.co.za/LoadShedding/GetStatus
+    public static String ESKOM_STAGE_ENDPOINT = "https://loadshedding.eskom.co.za/LoadShedding/GetStatus";
 
     
     private int loadSheddingStage;
@@ -86,7 +89,18 @@ public class StageService {
     }
 
     private Context getCurrentStage( Context ctx ){
-        return ctx.json( new StageDO( loadSheddingStage ) );
+        HttpResponse<String> stage_response = null;
+        try {
+            stage_response = Unirest.get(ESKOM_STAGE_ENDPOINT).asString();
+            System.out.println(stage_response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ctx.json( new StageDO( getStageFromResponse(stage_response) ) );
+    }
+
+    private int getStageFromResponse(HttpResponse<String> response) {
+        return Integer.parseInt(response.getBody().toString());
     }
     
     private Context setNewStage( Context ctx ){
