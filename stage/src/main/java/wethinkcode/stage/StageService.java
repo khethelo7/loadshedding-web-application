@@ -1,5 +1,9 @@
 package wethinkcode.stage;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javax.jms.JMSException;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -42,6 +46,7 @@ public class StageService {
     private int servicePort;
     
     private TopicSender topicSender = new TopicSender();
+    ScheduledExecutorService scheduler;
     
     @VisibleForTesting
     public
@@ -55,6 +60,7 @@ public class StageService {
         assert loadSheddingStage >= 0;
         topicSender.run();
         
+        setupScheduleExecutor();
         server = initHttpServer();
         return this;
     }
@@ -84,8 +90,7 @@ public class StageService {
             ctx.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
             ctx.header("Access-Control-Allow-Headers", "Content-Type");
         })
-        .get( "/stage", this::getCurrentStage )
-        .post( "/stage", this::setNewStage );
+        .get( "/stage", this::getCurrentStage );
     }
 
     private Context getCurrentStage( Context ctx ){
@@ -103,17 +108,34 @@ public class StageService {
         return Integer.parseInt(response.getBody().toString());
     }
     
-    private Context setNewStage( Context ctx ){
-        final StageDO stageData = ctx.bodyAsClass( StageDO.class );
-        final int newStage = stageData.getStage();
-        if( newStage >= 0 && newStage <= 8 ){
-            loadSheddingStage = newStage;
-            broadcastStageChangeEvent( ctx );
-            ctx.status( HttpStatus.OK );
-        }else{
-            ctx.status( HttpStatus.BAD_REQUEST );
+    // private Context setNewStage( Context ctx ){
+    //     final StageDO stageData = ctx.bodyAsClass( StageDO.class );
+    //     final int newStage = stageData.getStage();
+    //     if( newStage >= 0 && newStage <= 8 ){
+    //         loadSheddingStage = newStage;
+    //         broadcastStageChangeEvent( ctx );
+    //         ctx.status( HttpStatus.OK );
+    //     }else{
+    //         ctx.status( HttpStatus.BAD_REQUEST );
+    //     }
+    //     return ctx.json( new StageDO( loadSheddingStage ) );
+    // }
+
+    private void setupScheduleExecutor() {
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(
+            () -> makeStageRequest(), 0, 5, TimeUnit.SECONDS
+        );
+    }
+
+    private void makeStageRequest() {
+        HttpResponse<String> stage_response = null;
+        try {
+            stage_response = Unirest.get(ESKOM_STAGE_ENDPOINT).asString();
+            System.out.println(stage_response.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return ctx.json( new StageDO( loadSheddingStage ) );
     }
     
     private void broadcastStageChangeEvent( Context ctx ){
