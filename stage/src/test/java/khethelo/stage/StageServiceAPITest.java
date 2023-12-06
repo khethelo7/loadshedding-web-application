@@ -9,9 +9,6 @@ import kong.unirest.Unirest;
 import kong.unirest.json.JSONException;
 import org.junit.jupiter.api.*;
 
-import khethelo.loadshed.common.transfer.StageDO;
-import khethelo.stage.StageService;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -36,42 +33,19 @@ public class StageServiceAPITest
     }
 
     @Test
-    public void setNewStage_validStage(){
-        final int NEW_STAGE = 4;
-        HttpResponse<JsonNode> post = Unirest.post( serverUrl() + "/stage" )
-            .header( "Content-Type", "application/json" )
-            .body( new StageDO( NEW_STAGE ))
-            .asJson();
-        assertEquals( HttpStatus.OK, post.getStatus() );
+    public void getsCorrespondingState() {
+        final int trueStage = Integer.parseInt(
+                Unirest.get("https://loadshedding.eskom.co.za/LoadShedding/GetStatus")
+                    .asString()
+                    .getBody()
+        );
 
         HttpResponse<JsonNode> response = Unirest.get( serverUrl() + "/stage" ).asJson();
         assertEquals( HttpStatus.OK, response.getStatus() );
         assertEquals( "application/json", response.getHeaders().getFirst( "Content-Type" ) );
 
         final int stage = getStageFromResponse( response );
-        assertEquals( NEW_STAGE, stage );
-    }
-
-    @Test
-    public void setNewStage_illegalStageValue(){
-        HttpResponse<JsonNode> response = Unirest.get( serverUrl() + "/stage" ).asJson();
-        assertEquals( HttpStatus.OK, response.getStatus() );
-        assertEquals( "application/json", response.getHeaders().getFirst( "Content-Type" ) );
-        final int oldStage = getStageFromResponse( response );
-
-        final int NEW_STAGE = -1;
-        final HttpResponse<JsonNode> post = Unirest.post( serverUrl() + "/stage" )
-            .header( "Content-Type", "application/json" )
-            .body( new StageDO( NEW_STAGE ))
-            .asJson();
-        assertEquals( HttpStatus.BAD_REQUEST, post.getStatus() );
-
-        final HttpResponse<JsonNode> check = Unirest.get( serverUrl() + "/stage" ).asJson();
-        assertEquals( HttpStatus.OK, check.getStatus() );
-        assertEquals( "application/json", check.getHeaders().getFirst( "Content-Type" ) );
-
-        final int stage = getStageFromResponse( check );
-        assertEquals( oldStage, stage );
+        assertEquals( trueStage, stage );
     }
 
     private static int getStageFromResponse( HttpResponse<JsonNode> response ) throws JSONException{
