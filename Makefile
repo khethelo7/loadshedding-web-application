@@ -9,3 +9,9 @@ repackage:
 	@cp stage/target/stage-1.0-jar-with-dependencies.jar lib/
 	@cp schedule/target/schedule-1.0-jar-with-dependencies.jar lib/
 	@cp places/target/places-1.0-jar-with-dependencies.jar lib/
+
+run-all:
+	@java -jar lib/places-1.0-jar-with-dependencies.jar
+	@java -jar lib/schedule-1.0-jar-with-dependencies.jar
+	@java -jar lib/stage-1.0-jar-with-dependencies.jar
+	@java -jar lib/web-1.0-jar-with-dependencies.jar
