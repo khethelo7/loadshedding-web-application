@@ -90,7 +90,11 @@ public class WebService {
         return templateEngine;
     }
     public static void main( String[] args ){
+        String portStr = System.getenv("PORT");
+
+        int port = (portStr != null) ? Integer.parseInt(portStr) : DEFAULT_PORT;
+        
         final WebService svc = new WebService().initialise();
-        svc.start();
+        svc.start(port);
     }
 }
