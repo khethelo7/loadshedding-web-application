@@ -43,9 +43,9 @@ public class WebService {
     }
     
     public void start(){
-        placeAPI.run();
-        stageAPI.run();
-        scheduleAPI.run();
+        // placeAPI.run();
+        // stageAPI.run();
+        // scheduleAPI.run();
         start( DEFAULT_PORT );
     }
     
@@ -64,9 +64,9 @@ public class WebService {
     }
     
     private void configureHttpClient(){
-        placeAPI.initialise();
-        stageAPI.initialise();
-        scheduleAPI.initialise();
+        placeAPI.initialise().start();
+        stageAPI.initialise().start();
+        scheduleAPI.initialise().start();
     }
     
     private Javalin configureHttpServer(){
