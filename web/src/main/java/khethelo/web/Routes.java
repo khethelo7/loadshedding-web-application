@@ -8,6 +8,7 @@ import khethelo.places.model.Town;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import kong.unirest.jackson.JacksonObjectMapper;
 import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONException;
 import kong.unirest.json.JSONObject;
@@ -24,6 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class Routes {
     public static final String LANDING_PAGE = "/";
@@ -39,6 +42,7 @@ public class Routes {
     private static String schedule_url = "http://localhost:7002/";
 
     public static void configure(Javalin app) {
+        initJsonMapper();
         app.routes(() -> {
             get(LANDING_PAGE, landing);
             get(STAGE_PAGE, stage);
@@ -101,13 +105,13 @@ public class Routes {
         String searchedProvince = ctx.queryParam("selectedProvince");
         int currentStage = getStageFromResponse(Unirest.get(stage_url+"stage").asJson());
 
-        HttpResponse<JsonNode> response = Unirest
+        HttpResponse<ScheduleDO> response = Unirest
                 .get(schedule_url+searchedProvince+"/"+searchedTown+"/"+currentStage)
-                .asJson();
+                .asObject(ScheduleDO.class);
 
         // JSONObject scheduleObject = new JSONObject(response.getBody());
 
-        Map<String, Object> model = Map.of("town", searchedTown, "schedule", response.getBody());
+        Map<String, Object> model = Map.of("town", searchedTown, "schedule", response.getBody(), "stage", currentStage);
         ctx.render("schedule.html", model);
     };
 
@@ -141,6 +145,12 @@ public class Routes {
         }
     
         return resultList;
+    }
+    private static void initJsonMapper() {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+        Unirest.config().setObjectMapper(new JacksonObjectMapper( mapper ));
     }
 
 }
