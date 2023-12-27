@@ -15,9 +15,31 @@
         <main>
             <div layout:fragment="contents">
                 <p th:text="${'Showing schedule for '+town}"></p>
-                <div th:text="${schedule.days}">
-
-                </div>
+                <p th:text="${'For stage '+ stage}"></p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Day</th>
+                            <th class="text-center">Slot Start</th>
+                            <th class="text-center">Slot End</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="day, itr: ${schedule.getDays}">
+                            <td class="text-center" th:text="${itr.count}"></td>
+                            <td class="text-center">
+                                <span th:each="slot : ${day.getSlots}">
+                                    <span th:text="${slot.getStart}" class="text-center"></span><br/>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span th:each="slot : ${day.getSlots}">
+                                    <span th:text="${slot.getEnd}" class="text-center"></span><br/>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </main>
     </body>
