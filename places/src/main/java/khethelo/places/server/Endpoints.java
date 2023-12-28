@@ -19,7 +19,7 @@ public class Endpoints {
     }
 
     private static Collection<Town> getTowns( Context ctx, Places places ){
-        final String province = ctx.pathParam( "province" );
+        final String province = ctx.pathParam( "province" ).toUpperCase();
         return places.provinces().contains(province) ? places.townsIn( province ) : new ArrayList<>();
     }
     

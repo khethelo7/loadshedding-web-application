@@ -16,15 +16,15 @@ public class PlacesDb implements Places
 {
     private Collection<String> validProvinces = new ArrayList<>();
     {
-        validProvinces.add("Mpumalanga");
-        validProvinces.add("KwaZulu-Natal");
-        validProvinces.add("Gauteng");
-        validProvinces.add("Limpopo");
-        validProvinces.add("Free State");
-        validProvinces.add("North West");
-        validProvinces.add("Western Cape");
-        validProvinces.add("Eastern Cape");
-        validProvinces.add("Northern Cape");
+        validProvinces.add("MPUMALANGA");
+        validProvinces.add("KWAZULU-NATAL");
+        validProvinces.add("GAUTENG");
+        validProvinces.add("LIMPOPO");
+        validProvinces.add("FREE STATE");
+        validProvinces.add("NORTH WEST");
+        validProvinces.add("WESTERN CAPE");
+        validProvinces.add("EASTERN CAPE");
+        validProvinces.add("NORTHERN CAPE");
     };
     private final Set<Town> towns = new TreeSet<>();
     private Collection<String> provinces;
@@ -40,8 +40,8 @@ public class PlacesDb implements Places
     private void setProvinces() {
         this.provinces = new ArrayList<>();
         for (Town town : towns) {
-            if (!provinces.contains(town.getProvince()) && validProvinces.contains(town.getProvince())) {
-                provinces.add(town.getProvince());
+            if (!provinces.contains(town.getProvince().toUpperCase()) && validProvinces.contains(town.getProvince().toUpperCase())) {
+                provinces.add(town.getProvince().toUpperCase());
             }
         }
     }
@@ -53,9 +53,13 @@ public class PlacesDb implements Places
 
     @Override
     public Collection<Town> townsIn( String aProvince ){
-        return towns.parallelStream()
-            .filter( aTown -> aTown.getProvince().equals( aProvince ))
-            .collect( Collectors.toSet() );
+        Collection<Town> resultTowns = new ArrayList<>();
+        for (Town aTown : towns) {
+            if (aTown.getProvince().toUpperCase().equals(aProvince)) {
+                resultTowns.add(aTown);
+            }
+        }
+        return resultTowns;
     }
 
     @Override
