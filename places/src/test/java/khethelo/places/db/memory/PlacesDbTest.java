@@ -36,9 +36,9 @@ public class PlacesDbTest
     @Test
     public void testTownsInProvince(){
         final PlacesDb db = new PlacesDb( TOWNS );
-        assertThat( db.townsIn( "Gauteng" ).size() ).isEqualTo( 4 );
-        assertThat( db.townsIn( "Eastern Cape" ).size() ).isEqualTo( 2 );
-        assertThat( db.townsIn( "Western Cape" ).size() ).isEqualTo( 3 );
-        assertThat( db.townsIn( "Northern Cape" ) ).isEmpty();
+        assertThat( db.townsIn( "GAUTENG" ).size() ).isEqualTo( 4 );
+        assertThat( db.townsIn( "EASTERN CAPE" ).size() ).isEqualTo( 2 );
+        assertThat( db.townsIn( "WESTERN CAPE" ).size() ).isEqualTo( 3 );
+        assertThat( db.townsIn( "NORTHERN CAPE" ) ).isEmpty();
     }
 }
